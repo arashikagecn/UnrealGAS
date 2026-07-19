@@ -1,0 +1,100 @@
+# ==============================================================================
+# 1. 全局默认设置
+# ==============================================================================
+# 自动检测文本文件，并强制在仓库中存储为 LF 换行符
+* text=auto eol=lf
+
+# ==============================================================================
+# 2. Git LFS 设置 (大型二进制文件)
+# ==============================================================================
+# 注意：使用 LFS 前需确保团队成员已安装 Git LFS (git lfs install)
+# 这些文件将被替换为指针文件，实际内容存储在 LFS 服务器中
+
+# 媒体资源
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.tga filter=lfs diff=lfs merge=lfs -text
+*.bmp filter=lfs diff=lfs merge=lfs -text
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.tif filter=lfs diff=lfs merge=lfs -text
+*.tiff filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
+*.hdr filter=lfs diff=lfs merge=lfs -text
+
+# 3D 模型与动画
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.obj filter=lfs diff=lfs merge=lfs -text
+*.dae filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.abc filter=lfs diff=lfs merge=lfs -text
+
+# 音频与视频
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.avi filter=lfs diff=lfs merge=lfs -text
+*.mov filter=lfs diff=lfs merge=lfs -text
+
+# Unreal 特定二进制资产
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap filter=lfs diff=lfs merge=lfs -text
+*.uplugin filter=lfs diff=lfs merge=lfs -text
+*.pak filter=lfs diff=lfs merge=lfs -text
+*.dll filter=lfs diff=lfs merge=lfs -text
+*.exe filter=lfs diff=lfs merge=lfs -text
+*.so filter=lfs diff=lfs merge=lfs -text
+*.dylib filter=lfs diff=lfs merge=lfs -text
+
+# 压缩与归档
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.rar filter=lfs diff=lfs merge=lfs -text
+*.7z filter=lfs diff=lfs merge=lfs -text
+*.gz filter=lfs diff=lfs merge=lfs -text
+
+# ==============================================================================
+# 3. Unreal Engine 特定文本/配置文件处理
+# ==============================================================================
+
+# C++ 源代码
+*.h text diff=csharp
+*.cpp text diff=csharp
+*.c text diff=csharp
+*.cc text diff=csharp
+
+# Unreal 脚本与着色器
+*.usf text
+*.ush text
+*.hlsl text
+*.glsl text
+
+# 配置文件 (INI) - 通常建议视为文本以便合并，但需注意格式
+*.ini text
+*.config text
+*.int text
+
+# Project 文件
+*.uproject text
+
+# ==============================================================================
+# 4. 忽略生成的中间文件 (可选，通常配合 .gitignore 使用)
+# ==============================================================================
+# 虽然 .gitignore 是主要忽略手段，但在 attributes 中明确标记 binary 
+# 可以防止误操作添加时 Git 尝试进行文本差异比较
+
+Binaries/** binary
+DerivedDataCache/** binary
+Intermediate/** binary
+Saved/** binary
+Build/** binary
+
+# ==============================================================================
+# 5. 特殊合并驱动 (高级选项)
+# ==============================================================================
+# 如果团队配置了 unityyamlmerge 或类似的 UE 专用合并工具，可以取消下面注释
+# 注意：这需要在全局 git config 中预先定义 merge 驱动
+
+# *.umap merge=unityyamlmerge
+# *.uasset merge=unityyamlmerge
+# *.prefab merge=unityyamlmerge
