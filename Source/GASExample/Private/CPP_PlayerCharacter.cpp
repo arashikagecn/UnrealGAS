@@ -54,6 +54,7 @@ ACPP_PlayerCharacter::ACPP_PlayerCharacter()
 
 UAbilitySystemComponent* ACPP_PlayerCharacter::GetAbilitySystemComponent() const
 {
+	if (!IsValid(GetPlayerState<ACPP_PlayerState>())) return nullptr;
 	auto asc = GetPlayerState<ACPP_PlayerState>()->GetAbilitySystemComponent();
 	if (!IsValid(asc)) return nullptr;
 	return asc;

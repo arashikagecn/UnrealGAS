@@ -16,16 +16,12 @@ class GASEXAMPLE_API UCPP_GA_Primary : public UCPP_GameplayAbility
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "Crash|Abilities")
-	TArray<AActor*> HitBoxOverlapTest();
-	UFUNCTION(BlueprintCallable, Category = "Crash|Abilities")
 	void SendHitReactEventToActors(const TArray<AActor*>& HitActors);
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Crash|Abilities")
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Crash|Abilities")
 	float HitBoxRadius = 100.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Crash|Abilities")
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category = "Crash|Abilities")
 	float HitBoxForwardOffset = 100.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Crash|Abilities")
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category = "Crash|Abilities")
 	float HitBoxEvalationOffset = 20.f;
-
-	void DrawHitBoxLocation(const TArray<FOverlapResult>& OverlapResults, const FVector& HitBoxLocation) const;
 };

@@ -8,6 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "CPP_BaseCharacter.h"
 #include "GameplayTags/CPP_AbilityTags.h"
 
 void ACPP_PlayerController::SetupInputComponent()
@@ -27,11 +28,13 @@ void ACPP_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(PrimaryAction, ETriggerEvent::Started, this, &ACPP_PlayerController::CastPrimaryAction);
 	EnhancedInputComponent->BindAction(SecondaryAction, ETriggerEvent::Started, this, &ACPP_PlayerController::CastSecondaryActionAction);
 	EnhancedInputComponent->BindAction(TertiaryAction, ETriggerEvent::Started, this, &ACPP_PlayerController::CastTertiaryAction);
+	BaseCharacter = Cast<ACPP_BaseCharacter>(GetCharacter());
 }
 
 void ACPP_PlayerController::Jump()
 {
 	if (!IsValid(GetCharacter())) return;
+	if (!IsAlive()) return;
 	GetCharacter()->Jump();
 }
 void ACPP_PlayerController::StopJumping()
@@ -43,6 +46,7 @@ void ACPP_PlayerController::StopJumping()
 void ACPP_PlayerController::Move(const FInputActionValue& Value)
 {
 	if (!IsValid(GetPawn())) return;
+	if (!IsAlive()) return;
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 	const FRotator YawRotation(0.f, GetControlRotation().Yaw, 0.f);
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
@@ -77,7 +81,18 @@ void ACPP_PlayerController::CastTertiaryAction()
 
 void ACPP_PlayerController::ActivateAbilities(const FGameplayTag& AbilityTag)
 {
+	if (!IsAlive()) return;
 	UAbilitySystemComponent* AbsComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter());
 	if (!IsValid(AbsComponent)) return;
 	AbsComponent->TryActivateAbilitiesByTag(AbilityTag.GetSingleTagContainer());
+}
+
+bool ACPP_PlayerController::IsAlive()
+{
+	if (!BaseCharacter.IsValid())
+	{
+		BaseCharacter = Cast<ACPP_BaseCharacter>(GetCharacter());
+	}
+	if (!BaseCharacter.IsValid()) return false;
+	return BaseCharacter.Get()->IsAlive();
 }

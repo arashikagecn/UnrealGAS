@@ -55,10 +55,6 @@ void ACPP_BaseCharacter::HandleDeath()
 {
 	bAlive = false;
 	
-	if (IsValid(GEngine))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Game Client Death %s"), *GetName()));
-	}
 }
 
 void ACPP_BaseCharacter::HandleRespawn()
@@ -69,6 +65,7 @@ void ACPP_BaseCharacter::HandleRespawn()
 void ACPP_BaseCharacter::ResetAttributes()
 {
 	checkf(ResetAttributesEffect, TEXT("ResetAttributesEffect is NOT ready"));
+	if (!IsValid(GetAbilitySystemComponent())) return;
 	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
 	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(ResetAttributesEffect, 1, ContextHandle);
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());

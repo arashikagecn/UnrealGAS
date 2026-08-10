@@ -39,6 +39,8 @@ public:
 	virtual void HandleRespawn();
 	UFUNCTION(BlueprintCallable, Category="Crash|ResetAttribute")
 	virtual void ResetAttributes();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void RotateToTarget(AActor* RotateTarget);
 protected:
 	void GiveStartupAbilities();
 	void InitializeAttributes() const;

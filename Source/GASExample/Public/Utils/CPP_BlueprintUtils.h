@@ -6,6 +6,10 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CPP_BlueprintUtils.generated.h"
 
+struct FGameplayTag;
+struct FGameplayEventData;
+struct FOverlapResult;
+class UGameplayEffect;
 /**
  * 
  */
@@ -41,4 +45,12 @@ public:
 	static FName GetHitDirectionName(const EHitDirection& HitDirection);
 	UFUNCTION(BlueprintCallable, Category = "Crash|Utils")
 	static FClosestActorWithTagTarget FindClosestActorWithTagTarget(const UObject* WorldContentObject, const FVector& Origin, const FName& Tag);
+	UFUNCTION(BlueprintCallable, Category="Crash|PlayerDamage")
+	static void SendDamageEventToPlayer(AActor* Target, const TSubclassOf<UGameplayEffect>& DamageEffect, UPARAM(ref) FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage, UObject* OptionalParticleSystem = nullptr);
+	UFUNCTION(BlueprintCallable, Category="Crash|Overlap")
+	static TArray<AActor*> HitBoxOverlapTest(AActor* AvatarActor, float HitBoxRadius, float HitBoxForwardOffset, float HitBoxEvalationOffset, bool bDrawDebug);
+	UFUNCTION(BlueprintCallable, Category="Crash|Utils", meta=(AutoCreateRefTerm="TargetActors"))
+	static void ApplyKonckBack(AActor* SourceActor, const TArray<AActor*>& TargetActors, float NearestDistance,
+		float FarthestDistance, float ForceMagnitude, float LaunchAngle);
+	static void DrawHitBoxLocation(AActor* AvatarActor, const TArray<FOverlapResult>& OverlapResults, const FVector& HitBoxLocation, float HitBoxRadius);
 };

@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GASExamplePlayerController.generated.h"
 
+class ACPP_BaseCharacter;
 class UInputMappingContext;
 class UUserWidget;
 
@@ -19,6 +20,7 @@ class AGASExamplePlayerController : public APlayerController
 	GENERATED_BODY()
 	
 protected:
+
 
 	/** Input Mapping Contexts */
 	UPROPERTY(EditAnywhere, Category ="Input|Input Mappings")

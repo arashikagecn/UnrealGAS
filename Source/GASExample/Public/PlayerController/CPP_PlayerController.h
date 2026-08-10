@@ -6,9 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "CPP_PlayerController.generated.h"
 
-/**
- * 
- */
+class ACPP_BaseCharacter;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
@@ -20,7 +18,7 @@ class GASEXAMPLE_API ACPP_PlayerController : public APlayerController
 	
 protected:
 	virtual void SetupInputComponent() override;
-
+	TWeakObjectPtr<ACPP_BaseCharacter> BaseCharacter;
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Crash|Input")
 	TArray<TObjectPtr<UInputMappingContext>> InputMappingContexts;
@@ -46,4 +44,5 @@ private:
 	void CastSecondaryActionAction();
 	void CastTertiaryAction();
 	void ActivateAbilities(const FGameplayTag& AbilityTag);
+	bool IsAlive();
 };
