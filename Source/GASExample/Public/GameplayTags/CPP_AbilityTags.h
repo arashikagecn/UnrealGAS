@@ -7,6 +7,8 @@
 
 namespace CPPAbilityTags
 {
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(None);
+
 	namespace  SetByCaller
 	{
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Projectile);
@@ -36,4 +38,3 @@ namespace CPPAbilityTags
 		}
 	}
 }
-

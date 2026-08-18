@@ -44,9 +44,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Crash|Utils")
 	static FName GetHitDirectionName(const EHitDirection& HitDirection);
 	UFUNCTION(BlueprintCallable, Category = "Crash|Utils")
-	static FClosestActorWithTagTarget FindClosestActorWithTagTarget(const UObject* WorldContentObject, const FVector& Origin, const FName& Tag);
+	static FClosestActorWithTagTarget FindClosestActorWithTagTarget(const UObject* WorldContentObject, const FVector& Origin, const FName& Tag, float SearchRange);
 	UFUNCTION(BlueprintCallable, Category="Crash|PlayerDamage")
-	static void SendDamageEventToPlayer(AActor* Target, const TSubclassOf<UGameplayEffect>& DamageEffect, UPARAM(ref) FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage, UObject* OptionalParticleSystem = nullptr);
+	static void SendDamageEventToPlayer(AActor* Target, const TSubclassOf<UGameplayEffect>& DamageEffect, UPARAM(ref) FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage, const FGameplayTag& OverrideDamageTag, UObject* OptionalParticleSystem = nullptr);
+	UFUNCTION(BlueprintCallable, Category="Crash|PlayerDamage", meta=(AutoCreateRefTerm="Targets"))
+	static void SendDamageEventToTargets(const TArray<AActor*>& Targets, const TSubclassOf<UGameplayEffect>& DamageEffect, UPARAM(ref) FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage, const FGameplayTag& OverrideDamageTag, UObject* OptionalParticleSystem = nullptr);
 	UFUNCTION(BlueprintCallable, Category="Crash|Overlap")
 	static TArray<AActor*> HitBoxOverlapTest(AActor* AvatarActor, float HitBoxRadius, float HitBoxForwardOffset, float HitBoxEvalationOffset, bool bDrawDebug);
 	UFUNCTION(BlueprintCallable, Category="Crash|Utils", meta=(AutoCreateRefTerm="TargetActors"))

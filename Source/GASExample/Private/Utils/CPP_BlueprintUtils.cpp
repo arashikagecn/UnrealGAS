@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "CPP_BaseCharacter.h"
+#include "CPP_EnemyCharacter.h"
 #include "CPP_PlayerCharacter.h"
 #include "Attributes/Cpp_AttributeSet.h"
 #include "Components/PrimitiveComponent.h"
@@ -44,7 +45,7 @@ FName UCPP_BlueprintUtils::GetHitDirectionName(const EHitDirection& HitDirection
 }
 
 FClosestActorWithTagTarget UCPP_BlueprintUtils::FindClosestActorWithTagTarget(const UObject* WorldContentObject,
-	const FVector& Origin, const FName& Tag)
+	const FVector& Origin, const FName& Tag, const float SearchRange)
 {
 	TArray<AActor*> ActorsWithTag;
 	UGameplayStatics::GetAllActorsWithTag(WorldContentObject, Tag, ActorsWithTag);
@@ -57,6 +58,7 @@ FClosestActorWithTagTarget UCPP_BlueprintUtils::FindClosestActorWithTagTarget(co
 		if (!IsValid(Character) || !Character->IsAlive()) continue;
 		
 		const float Distance = FVector::Dist(Origin, Character->GetActorLocation());
+		if (Distance > SearchRange) continue;
 		if (Distance < fClosestDistance)
 		{
 			fClosestDistance = Distance;
@@ -67,7 +69,8 @@ FClosestActorWithTagTarget UCPP_BlueprintUtils::FindClosestActorWithTagTarget(co
 }
 
 void UCPP_BlueprintUtils::SendDamageEventToPlayer(AActor* Target, const TSubclassOf<UGameplayEffect>& DamageEffect,
-		FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage, UObject* OptionalParticleSystem)
+		FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage,
+		const FGameplayTag& OverrideDamageTag, UObject* OptionalParticleSystem)
 {
 	ACPP_BaseCharacter* PlayerCharacter = Cast<ACPP_BaseCharacter>(Target);
 	if (!IsValid(PlayerCharacter)) return;
@@ -76,7 +79,12 @@ void UCPP_BlueprintUtils::SendDamageEventToPlayer(AActor* Target, const TSubclas
 	UCPP_AttributeSet* Attributes =Cast<UCPP_AttributeSet>(PlayerCharacter->GetAttributesSet());
 	if (!IsValid(Attributes)) return;
 	const bool bLethal = Attributes->GetHealth() <= Damage;
-	const FGameplayTag PlayerTag = bLethal ? CPPAbilityTags::Event::Player::Death : CPPAbilityTags::Event::Player::HitReact;
+	FGameplayTag PlayerTag = bLethal ? CPPAbilityTags::Event::Player::Death : CPPAbilityTags::Event::Player::HitReact;
+	const FGameplayTag& OverrideEventTag = OverrideDamageTag;
+	if (OverrideEventTag.IsValid() && !OverrideEventTag.MatchesTagExact(CPPAbilityTags::None))
+	{
+		PlayerTag = OverrideEventTag;
+	}
 	Payload.OptionalObject = OptionalParticleSystem;
 	
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, PlayerTag, Payload);
@@ -89,6 +97,19 @@ void UCPP_BlueprintUtils::SendDamageEventToPlayer(AActor* Target, const TSubclas
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle, DataTag, -Damage);
 	
 	TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+}
+
+void UCPP_BlueprintUtils::SendDamageEventToTargets(const TArray<AActor*>& Targets,
+	const TSubclassOf<UGameplayEffect>& DamageEffect, FGameplayEventData& Payload, const FGameplayTag& DataTag,
+	float Damage, const FGameplayTag& OverrideDamageTag, UObject* OptionalParticleSystem)
+{
+	for (AActor* Target : Targets)
+	{
+		FGameplayEventData TargetPayload = Payload;
+		TargetPayload.Target = Target;
+		SendDamageEventToPlayer(Target, DamageEffect, TargetPayload, DataTag, Damage, OverrideDamageTag,
+			OptionalParticleSystem);
+	}
 }
 
 TArray<AActor*> UCPP_BlueprintUtils::HitBoxOverlapTest(AActor* AvatarActor, float HitBoxRadius, float HitBoxForwardOffset, float HitBoxEvalationOffset, bool bDrawDebug)
@@ -177,9 +198,10 @@ void UCPP_BlueprintUtils::ApplyKonckBack(AActor* SourceActor, const TArray<AActo
 		KnockbackForce.Z = 0.f;
 		const FVector Right = KnockbackForce.RotateAngleAxis(90.f, FVector::UpVector);
 		KnockbackForce = KnockbackForce.RotateAngleAxis(-LaunchAngle, Right) * AppliedMagnitude;
-		if (ACharacter* TargetCharacter = Cast<ACharacter>(TargetActor))
+		if (ACPP_EnemyCharacter* TargetCharacter = Cast<ACPP_EnemyCharacter>(TargetActor))
 		{
 			TargetCharacter->LaunchCharacter(KnockbackForce , true, true);
+			TargetCharacter->StopMovementUntilLanded();
 		}
 	}
 }

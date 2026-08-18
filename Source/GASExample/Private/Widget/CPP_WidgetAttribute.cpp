@@ -9,9 +9,9 @@ bool UCPP_WidgetAttribute::MatchAttribute(const TTuple<FGameplayAttribute, FGame
 }
 
 void UCPP_WidgetAttribute::OnAttributeChanged(const TTuple<FGameplayAttribute, FGameplayAttribute>& AttributePair,
-	UCPP_AttributeSet* AttributeSet)
+	UCPP_AttributeSet* AttributeSet, float OldValue)
 {
 	const auto AttributeValue = AttributePair.Key.GetNumericValue(AttributeSet);
 	const auto MaxAttributeValue = AttributePair.Value.GetNumericValue(AttributeSet);
-	BP_OnAttributeChanged(AttributeValue, MaxAttributeValue);
+	BP_OnAttributeChanged(AttributeValue, MaxAttributeValue, OldValue);
 }

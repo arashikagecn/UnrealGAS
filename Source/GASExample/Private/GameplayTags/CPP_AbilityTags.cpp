@@ -5,6 +5,8 @@
 
 namespace CPPAbilityTags
 {
+	UE_DEFINE_GAMEPLAY_TAG(None, "CPPAbilityTags.None");
+
 	namespace  SetByCaller
 	{
 		UE_DEFINE_GAMEPLAY_TAG(Projectile, "CPPAbilityTags.SetByCaller.Projectile");

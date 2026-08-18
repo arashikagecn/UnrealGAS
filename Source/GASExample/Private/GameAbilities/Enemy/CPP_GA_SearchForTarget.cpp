@@ -36,12 +36,12 @@ void UCPP_GA_SearchForTarget::ActivateAbility(const FGameplayAbilitySpecHandle H
 
 void UCPP_GA_SearchForTarget::StartSearch()
 {
+	if (!OwningEnemy.IsValid() || WaitDelayTask != nullptr) return;
 	if (!IsValid(GEngine)) return;
 	if (bDrawDebug)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Searching For Target: %s"), *GetName()));
 	}
-	if (!OwningEnemy.IsValid()) return;
 	WaitDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, UKismetMathLibrary::RandomFloatInRange(OwningEnemy->MinAttackDelay, OwningEnemy->MaxAttackDelay));
 	WaitDelayTask->OnFinish.AddDynamic(this, &ThisClass::UCPP_GA_SearchForTarget::OnAttackDelayFinished);
 	WaitDelayTask->Activate();
@@ -56,7 +56,13 @@ void UCPP_GA_SearchForTarget::OnGameplayEventReceived(FGameplayEventData EventDa
 
 void UCPP_GA_SearchForTarget::OnAttackDelayFinished()
 {
-	Search();
+	WaitDelayTask = nullptr;
+	if (!Search())
+	{
+		StartSearch();
+		return;
+	}
+
 	if (!TargetCharacter->IsAlive())
 	{
 		StartSearch();
@@ -68,21 +74,23 @@ void UCPP_GA_SearchForTarget::OnAttackDelayFinished()
 
 }
 
-void UCPP_GA_SearchForTarget::Search()
+bool UCPP_GA_SearchForTarget::Search()
 {
-	auto const TargetActor = UCPP_BlueprintUtils::FindClosestActorWithTagTarget(this, OwningEnemy->GetActorLocation(), TagToFind);
-	if (!TargetActor.Actor.IsValid())
+	if (!OwningEnemy.IsValid()) return false;
+	if (TargetCharacter.IsValid() && TargetCharacter->IsAlive())
 	{
-		StartSearch();
-		return;
+		return true;
 	}
+	TargetCharacter = nullptr;
+
+	auto const TargetActor = UCPP_BlueprintUtils::FindClosestActorWithTagTarget(this, OwningEnemy->GetActorLocation(), TagToFind, OwningEnemy->SearchRange);
 	ACPP_BaseCharacter* BaseCharacterToFind = Cast<ACPP_BaseCharacter>(TargetActor.Actor.Get());
 	if (!BaseCharacterToFind)
 	{
-		StartSearch();
-		return;
+		return false;
 	}
 	TargetCharacter =  BaseCharacterToFind;
+	return true;
 }
 
 void UCPP_GA_SearchForTarget::MoveAndAttack()

@@ -46,7 +46,7 @@ private:
 	TObjectPtr<UAbilityTask_WaitDelay> AttackDelayTask;
 	UFUNCTION()
 	void OnAttackDelayFinished();
-	void Search();
+	bool Search();
 	UFUNCTION(BlueprintCallable)
 	void MoveAndAttack();
 	UFUNCTION(BlueprintCallable)

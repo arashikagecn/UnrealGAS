@@ -69,9 +69,10 @@ void UCPP_WidgetComponent::BindWidgetAttributeChanges(UWidget* WidgetObject,
 	UCPP_WidgetAttribute* WidgetAttribute = Cast<UCPP_WidgetAttribute>(WidgetObject);	//Check the Given object owned by this component, see if it is a UCPP_WidgetAttribute component, handle it if so
 	if (!IsValid(WidgetAttribute)) return;
 	if (!WidgetAttribute->MatchAttribute(Pair)) return;
-	WidgetAttribute->OnAttributeChanged(Pair, AttributeSet.Get());
+	WidgetAttribute->AvatarActor = OwnerCharacter;
+	WidgetAttribute->OnAttributeChanged(Pair, AttributeSet.Get(), 0.f);
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Key).AddLambda([this, WidgetAttribute, &Pair](const FOnAttributeChangeData& AttributeChangeData)
 	{
-		WidgetAttribute->OnAttributeChanged(Pair, AttributeSet.Get());
+		WidgetAttribute->OnAttributeChanged(Pair, AttributeSet.Get(), AttributeChangeData.OldValue);
 	});
 }

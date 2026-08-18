@@ -31,7 +31,9 @@ void ACPP_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 	FGameplayEventData Payload;
 	Payload.Target = PlayerCharacter;
 	Payload.Instigator = GetOwner();
-	UCPP_BlueprintUtils::SendDamageEventToPlayer(PlayerCharacter, DamageEffect, Payload, CPPAbilityTags::SetByCaller::Projectile, Damage);
+	FGameplayEventData OverrideDamageTag;
+	OverrideDamageTag.EventTag = CPPAbilityTags::None;
+	UCPP_BlueprintUtils::SendDamageEventToPlayer(PlayerCharacter, DamageEffect, Payload, CPPAbilityTags::SetByCaller::Projectile, Damage, CPPAbilityTags::None);
 	// FGameplayEffectContextHandle EffectHandle = ASC->MakeEffectContext();
 	// FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(DamageEffect, 1.f, EffectHandle);
 	// UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, CPPAbilityTags::SetByCaller::Projectile, -Damage);
