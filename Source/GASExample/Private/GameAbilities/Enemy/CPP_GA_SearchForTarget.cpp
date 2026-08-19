@@ -36,42 +36,40 @@ void UCPP_GA_SearchForTarget::ActivateAbility(const FGameplayAbilitySpecHandle H
 
 void UCPP_GA_SearchForTarget::StartSearch()
 {
-	if (!OwningEnemy.IsValid() || WaitDelayTask != nullptr) return;
+	if (!OwningEnemy.IsValid() || IsValid(SearchDelayTask)) return;
 	if (!IsValid(GEngine)) return;
 	if (bDrawDebug)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("Searching For Target: %s"), *GetName()));
 	}
-	WaitDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, UKismetMathLibrary::RandomFloatInRange(OwningEnemy->MinAttackDelay, OwningEnemy->MaxAttackDelay));
-	WaitDelayTask->OnFinish.AddDynamic(this, &ThisClass::UCPP_GA_SearchForTarget::OnAttackDelayFinished);
-	WaitDelayTask->Activate();
+	SearchDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, UKismetMathLibrary::RandomFloatInRange(OwningEnemy->MinAttackDelay, OwningEnemy->MaxAttackDelay));
+	SearchDelayTask->OnFinish.AddDynamic(this, &ThisClass::UCPP_GA_SearchForTarget::OnSearchDelayFinished);
+	SearchDelayTask->Activate();
 }
 
 void UCPP_GA_SearchForTarget::OnGameplayEventReceived(FGameplayEventData EventData)
 {
 	if (!OwningEnemy.IsValid() || OwningEnemy->bIsBeingLaunched) return;
 
+	if (TargetCharacter.IsValid() && TargetCharacter->IsAlive())
+	{
+		MoveAndAttack();
+		return;
+	}
+
 	StartSearch();
 }
 
-void UCPP_GA_SearchForTarget::OnAttackDelayFinished()
+void UCPP_GA_SearchForTarget::OnSearchDelayFinished()
 {
-	WaitDelayTask = nullptr;
+	SearchDelayTask = nullptr;
 	if (!Search())
 	{
 		StartSearch();
 		return;
 	}
 
-	if (!TargetCharacter->IsAlive())
-	{
-		StartSearch();
-		return;
-	}else
-	{
-		MoveAndAttack();
-	}
-
+	MoveAndAttack();
 }
 
 bool UCPP_GA_SearchForTarget::Search()
@@ -95,12 +93,15 @@ bool UCPP_GA_SearchForTarget::Search()
 
 void UCPP_GA_SearchForTarget::MoveAndAttack()
 {
-	if (!OwningEnemy.IsValid()) return;
-	if (OwningEnemy->IsAlive() == false)
+	if (!OwningEnemy.IsValid() || !EnemyAIController.IsValid()) return;
+	if (!OwningEnemy->IsAlive()) return;
+	if (!TargetCharacter.IsValid() || !TargetCharacter->IsAlive())
 	{
+		TargetCharacter = nullptr;
 		StartSearch();
 		return;
 	}
+
 	MoveToTask = UAITask_MoveTo::AIMoveTo(EnemyAIController.Get(), FVector::Zero(), TargetCharacter.Get(), OwningEnemy->AcceptanceRadius);
 	MoveToTask->OnMoveTaskFinished.AddUObject(this, &ThisClass::AttackTarget);
 	MoveToTask->ConditionalPerformMove();
@@ -108,11 +109,27 @@ void UCPP_GA_SearchForTarget::MoveAndAttack()
 
 void UCPP_GA_SearchForTarget::AttackTarget(TEnumAsByte<EPathFollowingResult::Type> Result, AAIController* AIController)
 {
+	MoveToTask = nullptr;
 	if (Result != EPathFollowingResult::Success)
 	{
+		if (TargetCharacter.IsValid() && TargetCharacter->IsAlive())
+		{
+			MoveAndAttack();
+		}
+		else
+		{
+			StartSearch();
+		}
+		return;
+	}
+	if (!TargetCharacter.IsValid() || !TargetCharacter->IsAlive())
+	{
+		TargetCharacter = nullptr;
 		StartSearch();
 		return;
 	}
+	if (IsValid(AttackDelayTask)) return;
+
 	OwningEnemy->RotateToTarget(TargetCharacter.Get());
 	AttackDelayTask = UAbilityTask_WaitDelay::WaitDelay(this, OwningEnemy->GetTimelineLength());
 	AttackDelayTask->OnFinish.AddDynamic(this, &ThisClass::DoAttack);
@@ -121,6 +138,14 @@ void UCPP_GA_SearchForTarget::AttackTarget(TEnumAsByte<EPathFollowingResult::Typ
 
 void UCPP_GA_SearchForTarget::DoAttack()
 {
+	AttackDelayTask = nullptr;
+	if (!OwningEnemy.IsValid() || !TargetCharacter.IsValid() || !TargetCharacter->IsAlive())
+	{
+		TargetCharacter = nullptr;
+		StartSearch();
+		return;
+	}
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const FGameplayTag AttackTag = CPPAbilityTags::Ability::Enemy::Attack;
 	ASC->TryActivateAbilitiesByTag(AttackTag.GetSingleTagContainer());

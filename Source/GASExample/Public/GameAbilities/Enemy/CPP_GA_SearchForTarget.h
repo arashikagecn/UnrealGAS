@@ -41,11 +41,11 @@ private:
 	UPROPERTY()
 	TObjectPtr<UCPP_AbilityAsync_WaitGameplayEvent> WaitGameplayEventTask;
 	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitDelay> WaitDelayTask;
+	TObjectPtr<UAbilityTask_WaitDelay> SearchDelayTask;
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitDelay> AttackDelayTask;
 	UFUNCTION()
-	void OnAttackDelayFinished();
+	void OnSearchDelayFinished();
 	bool Search();
 	UFUNCTION(BlueprintCallable)
 	void MoveAndAttack();
