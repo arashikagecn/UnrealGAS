@@ -2,6 +2,7 @@
 
 
 #include "GameAbilities/CPP_AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTags/CPP_AbilityTags.h"
 
 void UCPP_AbilitySystemComponent::OnGiveAbility(FGameplayAbilitySpec& AbilitySpec)
@@ -18,6 +19,42 @@ void UCPP_AbilitySystemComponent::OnRep_ActivateAbilities()
 	{
 		HandleAutoActivateAbilities(AbilityInfo);
 	}
+}
+
+bool UCPP_AbilitySystemComponent::TryActivateAbilityOrBufferCombo(const FGameplayTag& AbilityTag)
+{
+	if (!AbilityTag.IsValid())
+	{
+		return false;
+	}
+
+	if (TryActivateAbilitiesByTag(AbilityTag.GetSingleTagContainer()))
+	{
+		SetLooseGameplayTagCount(CPPAbilityTags::State::Combo::InputBuffered, 0);
+		return true;
+	}
+
+	if (!HasMatchingGameplayTag(CPPAbilityTags::State::Combo::Active))
+	{
+		return false;
+	}
+
+	AActor* Avatar = GetAvatarActor();
+	if (!IsValid(Avatar))
+	{
+		return false;
+	}
+
+	SetLooseGameplayTagCount(CPPAbilityTags::State::Combo::InputBuffered, 1);
+
+	FGameplayEventData Payload;
+	Payload.EventTag = CPPAbilityTags::Event::Combo::InputBuffered;
+	Payload.Instigator = Avatar;
+	Payload.Target = Avatar;
+	Payload.InstigatorTags.AddTag(AbilityTag);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		Avatar, CPPAbilityTags::Event::Combo::InputBuffered, Payload);
+	return true;
 }
 
 void UCPP_AbilitySystemComponent::SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 Level)

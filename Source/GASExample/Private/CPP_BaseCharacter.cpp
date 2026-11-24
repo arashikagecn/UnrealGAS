@@ -4,6 +4,7 @@
 #include "CPP_BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "GameplayTags/CPP_AbilityTags.h"
 
 namespace CPPTags
 {
@@ -54,12 +55,28 @@ void ACPP_BaseCharacter::OnHealthChanged(const FOnAttributeChangeData& Attribute
 void ACPP_BaseCharacter::HandleDeath()
 {
 	bAlive = false;
-	
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
+	ASC->SetLooseGameplayTagCount(CPPAbilityTags::State::Death, 1);
+
+	FGameplayTagContainer ComboAbilityTags;
+	ComboAbilityTags.AddTag(CPPAbilityTags::Ability::Combo);
+	ASC->CancelAbilities(&ComboAbilityTags);
 }
 
 void ACPP_BaseCharacter::HandleRespawn()
 {
 	bAlive = true;
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->SetLooseGameplayTagCount(CPPAbilityTags::State::Death, 0);
+	}
 }
 
 void ACPP_BaseCharacter::ResetAttributes()

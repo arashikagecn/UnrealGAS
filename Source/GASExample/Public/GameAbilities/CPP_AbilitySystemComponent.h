@@ -17,6 +17,8 @@ class GASEXAMPLE_API UCPP_AbilitySystemComponent : public UAbilitySystemComponen
 public:
 	virtual void OnGiveAbility(FGameplayAbilitySpec& AbilitySpec) override;
 	virtual void OnRep_ActivateAbilities() override;
+	UFUNCTION(BlueprintCallable, Category = "Crash|Abilities|Combo")
+	bool TryActivateAbilityOrBufferCombo(const FGameplayTag& AbilityTag);
 	UFUNCTION(BlueprintCallable, Category = "Crash|Attribute")
 	void SetAbilityLevel(TSubclassOf<UGameplayAbility> AbilityClass, int32 Level);
 	UFUNCTION(BlueprintCallable, Category = "Crash|Attribute")

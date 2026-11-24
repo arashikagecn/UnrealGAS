@@ -9,6 +9,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "CPP_BaseCharacter.h"
+#include "GameAbilities/CPP_AbilitySystemComponent.h"
 #include "GameplayTags/CPP_AbilityTags.h"
 
 void ACPP_PlayerController::SetupInputComponent()
@@ -82,9 +83,10 @@ void ACPP_PlayerController::CastTertiaryAction()
 void ACPP_PlayerController::ActivateAbilities(const FGameplayTag& AbilityTag)
 {
 	if (!IsAlive()) return;
-	UAbilitySystemComponent* AbsComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter());
-	if (!IsValid(AbsComponent)) return;
-	AbsComponent->TryActivateAbilitiesByTag(AbilityTag.GetSingleTagContainer());
+	UCPP_AbilitySystemComponent* AbilityComponent = Cast<UCPP_AbilitySystemComponent>(
+		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetCharacter()));
+	if (!IsValid(AbilityComponent)) return;
+	AbilityComponent->TryActivateAbilityOrBufferCombo(AbilityTag);
 }
 
 bool ACPP_PlayerController::IsAlive()
